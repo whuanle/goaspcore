@@ -4,6 +4,6 @@ type ServiceLifetime int
 
 const (
 	Transient ServiceLifetime= iota
-	Scoped
+	Scope
 	Singleton
 )

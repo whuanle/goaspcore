@@ -1,12 +1,10 @@
 package router
 
-import "aspcore/Controllers"
-
-// 静态路由
+// StaticRouter 静态路由
 type StaticRouter struct {
 	Url string
 
-	Controller Controllers.ControllerBase
+	Controller IControllerBase
 
 	Action ActionDescriptor
 }

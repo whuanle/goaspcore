@@ -1,10 +1,10 @@
 package aspcore
 
-import "ioc"
+import "github.com/whuanle/goaspcore/ioc"
 
 type IStartup interface {
-	// 配置依赖注入
+	// ConfigureServices 配置依赖注入
 	ConfigureServices(services ioc.IServiceCollection)
-	// 配置中间件
+	// Configure 配置中间件
 	Configure(app IApplicationBuilder)
 }

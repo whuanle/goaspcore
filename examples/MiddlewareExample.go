@@ -1,15 +1,24 @@
-package middleware
+package main
 
-import "github.com/whuanle/goaspcore/aspcore"
+import (
+	"fmt"
+	"github.com/whuanle/goaspcore/aspcore"
+)
 
-type Middleware struct {
+// MyMiddleware 中间件实例
+type MyMiddleware struct {
 }
 
-func (m *Middleware) Invoke(context aspcore.HttpContext) {
+func (m *MyMiddleware) Invoke(context aspcore.HttpContext) {
+
+	request := context.Request
+	fmt.Println(request.RequestURI)
 
 	// 执行你的管道方法
 	// 执行下一个中间件
 	context.Next()
 
+	response := context.Response
+	fmt.Println(len(response.Header()))
 	// 继续执行你的管道方法
 }

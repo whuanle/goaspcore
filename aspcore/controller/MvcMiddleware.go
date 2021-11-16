@@ -1,11 +1,9 @@
-package mvc
+package controller
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/whuanle/goaspcore/aspcore"
-	""
-	"github.com/whuanle/goaspcore/aspcore/controller"
 	"github.com/whuanle/goaspcore/aspcore/router"
 	"io/ioutil"
 	"reflect"
@@ -16,7 +14,7 @@ import (
 
 // MvcMiddleware mvc 中间件
 type MvcMiddleware struct {
-	ControllerServices controller.ControllerService `"injection":"true"`
+	controllerServices ControllerService `"injection":"true"`
 	// 路由树
 	RouterTree router.RouterTree
 
@@ -24,22 +22,22 @@ type MvcMiddleware struct {
 }
 
 func (m *MvcMiddleware) Invoke(context *aspcore.HttpContext) {
-
 	// 解析路由
 	url := context.Request.URL.Path
 	// 静态路由
 	a, b := m.RouterTree.StaticRouter.Load(url)
 	if b {
-		router := a.(router.StaticRouter)
-		controller := context.GetService(reflect.TypeOf(router.Controller))
-		cb := controller.(aspcore.IControllerBase)
-		m.request(cb, router.Action)
+		r := a.(router.StaticRouter)
+		var iController router.IControllerBase
+		controller := context.GetService(reflect.TypeOf(iController))
+		cb := controller.(router.IControllerBase)
+		m.request(cb, r.Action)
 	} else {
 		urls := strings.Split(context.Request.URL.Path, "/")
 		if len(urls) == 2 {
 			controller, ok := m.RouterTree.ControllerRouter.Load(urls[0])
 			if ok {
-				base := controller.(router.ControllerDescriptor)
+				base := controller.(ControllerDescriptor)
 
 				var action router.ActionDescriptor
 
@@ -65,8 +63,8 @@ func (m *MvcMiddleware) Invoke(context *aspcore.HttpContext) {
 
 }
 
-func (m *MvcMiddleware) request(base aspcore.IControllerBase, action router.ActionDescriptor) {
-	controller := m.Context.GetService(reflect.TypeOf(base)).(aspcore.IControllerBase)
+func (m *MvcMiddleware) request(base router.IControllerBase, action router.ActionDescriptor) {
+	controller := m.Context.GetService(reflect.TypeOf(base)).(router.IControllerBase)
 
 	t := reflect.TypeOf(controller)
 	personValue := reflect.ValueOf(controller)
@@ -111,18 +109,18 @@ func (m *MvcMiddleware) QueryTo(name string) string {
 	return value
 }
 
-// 根据注入的控制器构建路由
+// CreateRouter 根据注入的控制器构建路由
 func (m *MvcMiddleware) CreateRouter() {
 
-	routers := make([]router.ControllerDescriptor, len(m.ControllerServices))
+	routers := make([]ControllerDescriptor, len(m.controllerServices.controllers))
 	// 控制器路由
 	controllerRouter := sync.Map{}
 	// 静态路由
 	staticRouter := sync.Map{}
 
-	for _, controller := range m.ControllerServices.controllers {
+	for _, controller := range m.controllerServices.controllers {
 
-		controllerDescriptor := router.ControllerDescriptor{
+		controllerDescriptor := ControllerDescriptor{
 			Url:        reflect.TypeOf(controller).Name(),
 			Controller: controller,
 		}

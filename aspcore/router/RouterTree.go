@@ -2,8 +2,9 @@ package router
 
 import "sync"
 
-// 路由树
+// RouterTree 路由树
 type RouterTree struct {
+
 	// 控制器路由
 	ControllerRouter sync.Map
 

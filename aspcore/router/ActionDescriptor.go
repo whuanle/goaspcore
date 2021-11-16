@@ -1,12 +1,12 @@
 package router
 
-import "aspcore"
+import "github.com/whuanle/goaspcore/aspcore"
 
-// Action 描述
+// ActionDescriptor  action 描述
 type ActionDescriptor struct {
 	// 是否是静态的
 	Static bool
-	// url
+	// 路由地址，url
 	Url string
 	// 请求类型
 	HeaderType aspcore.RequestType

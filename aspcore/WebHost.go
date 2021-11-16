@@ -1,9 +1,8 @@
 package aspcore
 
 import (
-	"aspcore/Middleware"
 	"fmt"
-	"ioc"
+	"github.com/whuanle/goaspcore/ioc"
 	"net/http"
 	"reflect"
 )
@@ -11,10 +10,16 @@ import (
 type WebHost struct {
 }
 
-func (host *WebHost) Run(start *IStartup) (err error) {
+func (host *WebHost) Run(start *IStartup, addr string) {
+	fmt.Println("正在初始化")
 	web := &Host{}
 	web.Init(start)
-	return http.ListenAndServe("localhoast:8000", web)
+	fmt.Println("正在监控")
+	err := http.ListenAndServe(addr, web)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
 }
 
 type Host struct {
@@ -25,7 +30,7 @@ type Host struct {
 	startup *IStartup
 
 	// 中间件
-	middlewares []Middleware.IMiddleware
+	middlewares []IMiddleware
 }
 
 func (host *Host) Init(startup *IStartup) {
@@ -36,10 +41,10 @@ func (host *Host) Init(startup *IStartup) {
 	host.startup = startup
 
 	// 获取中间件
-	var iapp IApplicationBuilder
-	iapp = &ApplicationBuilder{}
-	(*host.startup).Configure(iapp)
-	host.middlewares = (iapp).(*ApplicationBuilder).CopyTo()
+	var app IApplicationBuilder
+	app = &ApplicationBuilder{}
+	(*host.startup).Configure(app)
+	host.middlewares = (app).(*ApplicationBuilder).CopyTo()
 
 	// 中间件也要注入到容器中
 	for _, mid := range host.middlewares {
@@ -69,7 +74,7 @@ func (host *Host) ServeHTTP(response http.ResponseWriter, resuest *http.Request)
 		code := int(context.StatusCode)
 		if code == 0 {
 			context.StatusCode = Status404NotFound
-			fmt.Fprint(context.Response, "goaspcore 框架提醒你，404 页面")
+			_, _ = fmt.Fprint(context.Response, "goaspcore 框架提醒你，404 页面")
 		}
 	}()
 

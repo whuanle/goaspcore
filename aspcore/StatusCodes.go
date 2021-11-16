@@ -1,9 +1,8 @@
 package aspcore
 
-type StatusCodes int
+type StatusCodes uint
 
-// 所有 HTTP 状态码
-
+// 所有的 HTTP 状态码
 const (
 	Status100Continue StatusCodes = 100
 

@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// 注册对象
+// ServiceCollection 注册对象
 type ServiceCollection struct {
 	// 容器内的对象
 	descriptors []ServiceDescriptor
@@ -14,16 +14,16 @@ type ServiceCollection struct {
 	Count int
 }
 
-// 统一添加方法
+// 基础注入方法
 func (s *ServiceCollection) addAny(implementationType reflect.Type, serviceType reflect.Type, lifetime ServiceLifetime, f func() interface{}) {
 	descriptor := ServiceDescriptor{
-		Name:               serviceType.Name(),
-		ImplementationType: implementationType,
-		ServiceType:        serviceType,
-		Lifetime:           lifetime,
-		InitHandler:        f,
+		Name:          serviceType.Name(),
+		InheritType:   implementationType,
+		ImplementType: serviceType,
+		Lifetime:      lifetime,
+		InitHandler:   f,
 	}
-	// 单例模式提前实例化
+	// 单例模式提前实例化，也就是常驻内存
 	if lifetime == Singleton {
 		descriptor.ImplementationInstance = f()
 	}
@@ -35,25 +35,25 @@ func (s *ServiceCollection) AddScoped(t reflect.Type) {
 	f := func() interface{} {
 		return reflect.New(t).Elem().Interface()
 	}
-	s.addAny(t, t, Scoped, f)
+	s.addAny(t, t, Scope, f)
 }
 
 func (s *ServiceCollection) AddScopedHandler(t reflect.Type, f func() interface{}) {
-	s.addAny(t, t, Scoped, f)
+	s.addAny(t, t, Scope, f)
 }
 
 func (s *ServiceCollection) AddScopedForm(implementationType reflect.Type, serviceType reflect.Type) {
 	f := func() interface{} {
 		return reflect.New(serviceType).Elem().Interface()
 	}
-	s.addAny(implementationType, serviceType, Scoped, f)
+	s.addAny(implementationType, serviceType, Scope, f)
 }
 
 func (s *ServiceCollection) AddScopedHandlerForm(implementationType reflect.Type, serviceType reflect.Type, f func() interface{}) {
 	if !serviceType.Implements(implementationType) {
 		panic(fmt.Sprintf("%t 不实现 %t", serviceType, implementationType))
 	}
-	s.addAny(implementationType, serviceType, Scoped, f)
+	s.addAny(implementationType, serviceType, Scope, f)
 }
 
 func (s *ServiceCollection) AddSingleton(t reflect.Type) {
@@ -112,9 +112,9 @@ func (s *ServiceCollection) add(serviceDescriptor ServiceDescriptor) {
 
 // 移除
 func (s *ServiceCollection) remove(descriptor ServiceDescriptor) {
-	index, error := s.containIndex(descriptor)
-	if error != nil {
-		log.Fatal(error)
+	index, err := s.containIndex(descriptor)
+	if err != nil {
+		log.Fatal(err)
 		return
 	}
 	s.descriptors = append(s.descriptors[:index], s.descriptors[index:]...)
@@ -124,7 +124,7 @@ func (s *ServiceCollection) remove(descriptor ServiceDescriptor) {
 // 查找对象的位置
 func (s *ServiceCollection) containIndex(descriptor ServiceDescriptor) (int, error) {
 	for i, sd := range s.descriptors {
-		if sd.ServiceType == descriptor.ServiceType {
+		if sd.ImplementType == descriptor.ImplementType {
 			return i, nil
 		}
 	}
@@ -135,10 +135,10 @@ func (s *ServiceCollection) Build() IServiceProvider {
 	// scoped
 	descriptors := make([]ServiceDescriptor, s.Count, s.Count)
 
-	// 复制集合中的所有对象到新的容器中，并且对每个 socped 的对象实例化
+	// 复制集合中的所有对象到新的容器中，并且对每个 Scope 的对象实例化
 	for i, descriptor := range s.descriptors {
 		descriptors[i] = descriptor
-		if descriptors[i].Lifetime == Scoped {
+		if descriptors[i].Lifetime == Scope {
 			descriptors[i].ImplementationInstance = descriptors[i].InitHandler()
 		}
 	}

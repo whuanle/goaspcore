@@ -1,11 +1,12 @@
 package router
 
 import (
-	"aspcore"
+	"github.com/whuanle/goaspcore/aspcore"
 	"reflect"
 	"strings"
 )
 
+// RouterBuilder 路由构建器
 type RouterBuilder struct {
 	// 路由表
 	RouterTable map[string]ActionDescriptor

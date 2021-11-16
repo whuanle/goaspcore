@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-// 对象描述
+// ServiceDescriptor 是注入项的描述
 type ServiceDescriptor struct {
 	// 对象名称
 	Name string
@@ -12,13 +12,13 @@ type ServiceDescriptor struct {
 	// 对象生命周期
 	Lifetime ServiceLifetime
 
-	// 对象继承的接口
-	ImplementationType reflect.Type
+	// 对象继承的接口，要注入的接口等
+	InheritType reflect.Type
 
-	// 对象类型
-	ServiceType  reflect.Type
+	// 实现对象，实例对象
+	ImplementType reflect.Type
 
-	// 实例对象
+	// 已被实例化的对象，存储在内存中
 	ImplementationInstance interface{}
 
 	// 如何实例化对象

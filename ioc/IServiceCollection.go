@@ -2,32 +2,39 @@ package ioc
 
 import "reflect"
 
-// 对象容器
+// IServiceCollection 是依赖注入对象容器接口
 type IServiceCollection interface {
 
-	// 域实例注册
+	// AddScoped 注册对象为域实例，即 Scope 生命周期
 	AddScoped(t reflect.Type)
-	// 实例注册，并自定义如何初始化实例
+
+	// AddScopedHandler 注册对象为域实例，即 Scope 生命周期，并自定义如何初始化实例
 	AddScopedHandler(t reflect.Type, f func() interface{})
-	// 实例注册，注册接口及其实现
+	// AddScopedForm 注册对象为域实例，注册接口及其实现
 	AddScopedForm(implementationType reflect.Type, serviceType reflect.Type)
-	// 实例注册，注册接口及其实现，并自定义如何初始化实例
+	// AddScopedHandlerForm 注册对象为域实例，注册接口及其实现，并自定义如何初始化实例
 	AddScopedHandlerForm(implementationType reflect.Type, serviceType reflect.Type, f func() interface{})
 
-	// 单例注册
+	// AddSingleton 注册对象为单例
 	AddSingleton(t reflect.Type)
+	// AddSingletonHandler 注册对象为域实例，即 Scope 生命周期，并自定义如何初始化实例
 	AddSingletonHandler(t reflect.Type, f func() interface{})
+	// AddSingletonForm 注册对象为域实例，注册接口及其实现
 	AddSingletonForm(implementationType reflect.Type, serviceType reflect.Type)
+	// AddSingletonHandlerForm 注册对象为域实例，注册接口及其实现，并自定义如何初始化实例
 	AddSingletonHandlerForm(implementationType reflect.Type, serviceType reflect.Type, f func() interface{})
 
-	// 瞬时实例注册
+	// AddTransient 注册对象为单例
 	AddTransient(t reflect.Type)
+	// AddTransientHandler 注册对象为域实例，即 Scope 生命周期，并自定义如何初始化实例
 	AddTransientHandler(t reflect.Type, f func() interface{})
+	// AddTransientForm 注册对象为域实例，注册接口及其实现
 	AddTransientForm(implementationType reflect.Type, serviceType reflect.Type)
+	// AddTransientHandlerForm 注册对象为域实例，注册接口及其实现，并自定义如何初始化实例
 	AddTransientHandlerForm(implementationType reflect.Type, serviceType reflect.Type, f func() interface{})
 
-	// 复制当前容器的所有对象
+	// CopyTo 复制当前容器的所有对象，生成新的容器
 	CopyTo() IServiceCollection
-	// 构建 ioc 服务
+	// 	Build() 构建依赖注入服务提供器 IServiceProvider
 	Build() IServiceProvider
 }
