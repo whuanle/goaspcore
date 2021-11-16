@@ -1,16 +1,16 @@
 package router
 
 import (
-	"aspcore/Controllers"
+	"github.com/whuanle/goaspcore/aspcore"
 )
 
+// ControllerDescriptor 控制器描述
 type ControllerDescriptor struct {
 
 	// 控制器地址
 	Url string
-
 	// 控制器
-	Controller Controllers.ControllerBase
+	Controller aspcore.IControllerBase
 
 	ActionRouters []ActionDescriptor
 }

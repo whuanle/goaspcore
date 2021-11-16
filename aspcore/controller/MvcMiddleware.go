@@ -1,10 +1,12 @@
-package Controllers
+package mvc
 
 import (
-	"aspcore"
-	"aspcore/router"
 	"encoding/json"
 	"fmt"
+	"github.com/whuanle/goaspcore/aspcore"
+	""
+	"github.com/whuanle/goaspcore/aspcore/controller"
+	"github.com/whuanle/goaspcore/aspcore/router"
 	"io/ioutil"
 	"reflect"
 	"strconv"
@@ -12,16 +14,16 @@ import (
 	"sync"
 )
 
-// mvc 中间件
+// MvcMiddleware mvc 中间件
 type MvcMiddleware struct {
-	controllerServices ControllerService `"injection":"true"`
+	ControllerServices controller.ControllerService `"injection":"true"`
 	// 路由树
 	RouterTree router.RouterTree
 
 	Context aspcore.HttpContext `"injection":"true"`
 }
 
-func (m *MvcMiddleware) Invoke(context aspcore.HttpContext) {
+func (m *MvcMiddleware) Invoke(context *aspcore.HttpContext) {
 
 	// 解析路由
 	url := context.Request.URL.Path
@@ -30,7 +32,7 @@ func (m *MvcMiddleware) Invoke(context aspcore.HttpContext) {
 	if b {
 		router := a.(router.StaticRouter)
 		controller := context.GetService(reflect.TypeOf(router.Controller))
-		cb := controller.(ControllerBase)
+		cb := controller.(aspcore.IControllerBase)
 		m.request(cb, router.Action)
 	} else {
 		urls := strings.Split(context.Request.URL.Path, "/")
@@ -49,13 +51,13 @@ func (m *MvcMiddleware) Invoke(context aspcore.HttpContext) {
 				}
 				if action.ActionName == "" {
 					context.StatusCode = aspcore.Status404NotFound
-					fmt.Fprint(context.Response, "goaspcore 提醒你 404")
+					_, _ = fmt.Fprint(context.Response, "goaspcore 提醒你 404")
 				}
 				m.request(base.Controller, action)
 			}
 		} else {
 			context.StatusCode = aspcore.Status404NotFound
-			fmt.Fprint(context.Response, "goaspcore 提醒你 404")
+			_, _ = fmt.Fprint(context.Response, "goaspcore 提醒你 404")
 		}
 	}
 
@@ -63,8 +65,8 @@ func (m *MvcMiddleware) Invoke(context aspcore.HttpContext) {
 
 }
 
-func (m *MvcMiddleware) request(base ControllerBase, action router.ActionDescriptor) {
-	controller := m.Context.GetService(reflect.TypeOf(base)).(ControllerBase)
+func (m *MvcMiddleware) request(base aspcore.IControllerBase, action router.ActionDescriptor) {
+	controller := m.Context.GetService(reflect.TypeOf(base)).(aspcore.IControllerBase)
 
 	t := reflect.TypeOf(controller)
 	personValue := reflect.ValueOf(controller)
@@ -112,13 +114,13 @@ func (m *MvcMiddleware) QueryTo(name string) string {
 // 根据注入的控制器构建路由
 func (m *MvcMiddleware) CreateRouter() {
 
-	routers := make([]router.ControllerDescriptor, len(m.controllerServices.controllers))
+	routers := make([]router.ControllerDescriptor, len(m.ControllerServices))
 	// 控制器路由
 	controllerRouter := sync.Map{}
 	// 静态路由
 	staticRouter := sync.Map{}
 
-	for _, controller := range m.controllerServices.controllers {
+	for _, controller := range m.ControllerServices.controllers {
 
 		controllerDescriptor := router.ControllerDescriptor{
 			Url:        reflect.TypeOf(controller).Name(),
@@ -129,8 +131,8 @@ func (m *MvcMiddleware) CreateRouter() {
 		controller.Init(r)
 
 		// 区分是控制器 Action 还是静态 Action
-		nostatic, static := m.filtrate(r.RouterTable)
-		controllerDescriptor.ActionRouters = nostatic
+		noActionstatic, static := m.filtrate(r.RouterTable)
+		controllerDescriptor.ActionRouters = noActionstatic
 		// 写入路由树
 		for _, ac := range static {
 			staticRouter.Store(ac.Url, &router.StaticRouter{

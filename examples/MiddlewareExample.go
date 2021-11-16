@@ -1,6 +1,6 @@
-package Middleware
+package middleware
 
-import "aspcore"
+import "github.com/whuanle/goaspcore/aspcore"
 
 type Middleware struct {
 }
